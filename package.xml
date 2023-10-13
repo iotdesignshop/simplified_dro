@@ -7,7 +7,7 @@
   <maintainer email="trent@iotdesignshop.com">Trent Shumay</maintainer>
   <license>MIT</license>
 
-  <exec_depend>python3-kivy</exec_depend>
+  <exec_depend>python3-kivy2</exec_depend>
 
   <test_depend>ament_copyright</test_depend>
   <test_depend>ament_flake8</test_depend>
