@@ -1,0 +1,221 @@
+#:kivy 2.2.1
+
+
+# Constants and colors
+#:import hex kivy.utils.get_color_from_hex
+
+#:set BACKGROUND_COLOR hex('#e9edf3')
+#:set BUTTON_COLOR hex('#2156e1')
+#:set BUTTON_BACKGROUND hex('#ffffff')
+#:set LABEL_COLOR hex('#000000')
+
+# Standard button style
+<Button>:
+    font_size: '16dp'
+    color: BUTTON_COLOR
+    background_normal: ''
+    background_color: BUTTON_BACKGROUND
+    size_hint_y: None
+    height: '48dp'
+    
+    # Center button in layout
+    pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+
+    
+    canvas.before:
+        Color:
+            rgba: BUTTON_COLOR
+        Line:
+            rectangle: (self.x, self.y, self.width, self.height)
+            width: 2
+
+# Custom Label Style for Python Fields
+<PythonLabel@Label>:
+    font_size: '16sp'
+    color: LABEL_COLOR
+    size_hint_y: None
+    height: '48dp'
+    text_size: self.width, None
+    halign: 'center'
+    valign: 'middle'
+    pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+    canvas.before:
+        Color:
+            rgba: BUTTON_BACKGROUND
+        Rectangle:
+            pos: self.pos
+            size: self.size
+    
+# Label Style for Section Headings
+<SectionLabel@Label>:
+    font_size: '14sp'
+    color: LABEL_COLOR
+    size_hint_y: None
+    height: '18dp'
+    text_size: self.width, None
+    valign: 'center'
+    halign: 'left'
+    padding: '0dp', '0dp'
+
+# DOF Views Contain all the Sub-widgets for a DOF
+<DOFWidget@BoxLayout>:
+    orientation: 'vertical'
+    padding: '10dp'
+    spacing: '4dp'
+    size_hint_y: None
+    height: self.minimum_height
+
+    canvas.before:
+        Color:
+            rgba: 0,0,0,.03
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+
+    
+    SectionLabel:
+        text: root.dof_name
+        height: '12dp'
+        
+    BoxLayout:
+        orientation: 'horizontal'
+        size_hint_y: None
+        height: self.minimum_height
+        valign: 'bottom'
+        height: '40dp'
+        spacing: '5dp'
+        
+        Label:
+            text: "{:.1f}".format(root.dof_value)
+            font_size: '42sp'
+            halign: 'right'
+            valign: 'bottom'
+            size: self.texture_size
+            color: LABEL_COLOR
+            size_hint_x: None
+            
+        Label:
+            text: "deg"
+            font_size: '15sp'
+            halign: 'left'
+            valign: 'bottom'
+            size: self.texture_size
+            color: LABEL_COLOR
+            padding: '2dp', '3dp'
+            size_hint: (None, None)
+
+        Widget: # Spacer
+            size_hint_x: 1
+
+        Image:
+            canvas.before:
+                Color:
+                    rgba: root.dof_temp_color
+                Ellipse:
+                    pos: self.pos
+                    size: self.size
+
+            source: 'images/temp.png'
+            size_hint: (None, None)
+            height: '30dp'
+            width: self.height 
+            
+
+        Image:
+            canvas.before:
+                Color:
+                    rgba: root.dof_force_color
+                Ellipse:
+                    pos: self.pos
+                    size: self.size
+
+            source: 'images/weight.png'
+            size_hint: (None, None)
+            height: '30dp'
+            width: self.height
+            
+            
+    BoxLayout:
+        orientation: 'horizontal'
+        size_hint_y: None
+        height: self.minimum_height
+        valign: 'bottom'
+        height: '20dp'
+        spacing: '5dp'
+
+        Label:
+            text: "{:.1f}".format(root.dof_min)
+            font_size: '12sp'
+            halign: 'right'
+            valign: 'bottom'
+            size: self.texture_size
+            color: LABEL_COLOR
+            size_hint_x: None
+    
+        ProgressBar:
+            id: dof_slider
+            min: root.dof_min
+            max: root.dof_max
+            value: root.dof_value
+
+        Label:
+            text: "{:.1f}".format(root.dof_max)
+            font_size: '12sp'
+            halign: 'right'
+            valign: 'bottom'
+            size: self.texture_size
+            color: LABEL_COLOR
+            size_hint_x: None
+        
+        
+
+    
+
+    
+# Root layout is a BoxLayout
+<MainLayout@BoxLayout>:
+    
+    scrollview_content: scrollview_content_id
+
+    orientation: 'vertical'    # or 'horizontal'
+    padding: '4dp','8dp','4dp','8dp'
+    spacing: '8dp'
+
+    canvas.before:
+        Color:
+            rgba: BACKGROUND_COLOR
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+    ScrollView:
+        size_hint_y: 1
+        pos_hint: {'top': 1}
+
+        BoxLayout:
+            id: scrollview_content_id
+            orientation: 'vertical'
+            padding: '8dp'
+            spacing: '4dp'
+            size_hint_y: None
+            height: self.minimum_height
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: '8dp'
+        size_hint_y: None
+        height: self.minimum_height
+        
+        SectionLabel:
+            text: 'Python'
+            
+        PythonLabel:
+            text: root.dof_python_value
+            
+        
+    
+    Button:
+        text: 'Copy to Clipboard'
+        size_hint_x: 0.5
+        on_press: root.copy_to_clipboard()
