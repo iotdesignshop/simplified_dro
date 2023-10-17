@@ -1,4 +1,5 @@
 from setuptools import find_packages, setup
+import glob
 
 package_name = 'simplified_dro'
 
@@ -10,6 +11,8 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
+        ('share/' + package_name + "/ui", glob.glob('ui/*.kv')),
+        ('share/' + package_name + '/ui/images', glob.glob('ui/images/*')),
     ],
     install_requires=['setuptools','kivy==2.2.1'],
     zip_safe=True,
@@ -20,6 +23,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            'dro = simplified_dro.dro:main',
         ],
     },
 )

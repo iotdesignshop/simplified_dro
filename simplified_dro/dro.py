@@ -4,13 +4,23 @@ from kivy.core.window import Window
 from kivy.properties import NumericProperty, StringProperty, ListProperty, ObjectProperty
 from random import random
 import colorsys
+import os
+from ament_index_python.packages import get_package_share_directory
 from kivy.core.clipboard import Clipboard
+from kivy.clock import Clock
+import rclpy
+from simplified_dro.dro_node import DroNode
+from kivy.lang import Builder
 
 # Default to a narrow, but tall window for the DOFs
 Window.size = (360, 800)
 
 # Indicator color constants
 GREY_COLOR = [0.5, 0.5, 0.5, 1]
+
+# Package paths for accessing resources
+kv_file_path = os.path.join(get_package_share_directory('simplified_dro'), 'ui/dro.kv')
+
 
 class DOFWidget(BoxLayout):
     dof_name = StringProperty('Unknown DOF')
@@ -19,6 +29,8 @@ class DOFWidget(BoxLayout):
     dof_max = NumericProperty(180.0)
     dof_temp_color = ListProperty(GREY_COLOR)
     dof_force_color = ListProperty(GREY_COLOR)
+    image_path = StringProperty(os.path.join(get_package_share_directory('simplified_dro'), 'ui/images'))
+
 
 
     # Convenience functions for setting temp/force
@@ -48,6 +60,8 @@ class DOFWidget(BoxLayout):
     
     
 class MainLayout(BoxLayout):
+    
+    
     scrollview_content = ObjectProperty()
     dof_python_value = StringProperty('[0.0, 0.0, 0.0, 0.0, 0.0, 0.0]')
 
@@ -58,8 +72,18 @@ class MainLayout(BoxLayout):
     
 
 class DROApp(App):
+
     def build(self):
+        
+        # Load the kv file
+        Builder.load_file(kv_file_path)
+
         main_layout = MainLayout()
+
+        # Start ROS node
+        self.node = DroNode()
+
+        Clock.schedule_interval(self.spin, 1.0 / 10.0)  # Run ROS node at 10 Hz
 
         # Add DOF widgets to scrollview
         for i in range(6):
@@ -67,7 +91,20 @@ class DROApp(App):
 
         return main_layout
     
+    def spin(self, dt):
+        # Update ROS Node
+        rclpy.spin_once(self.node)
+
+    def on_stop(self):
+        self.node.destroy_node()
+        rclpy.shutdown()
+
+
+# Entry point for ROS2
+def main(args=None):
+    rclpy.init(args=args)
+    DROApp().run()
 
 if __name__ == '__main__':
-    DROApp().run()
+    main()
 
