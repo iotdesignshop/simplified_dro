@@ -11,6 +11,7 @@ from kivy.clock import Clock
 import rclpy
 from simplified_dro.dro_node import DroNode
 from kivy.lang import Builder
+import math
 
 # Default to a narrow, but tall window for the DOFs
 Window.size = (360, 800)
@@ -81,13 +82,9 @@ class DROApp(App):
         main_layout = MainLayout()
 
         # Start ROS node
-        self.node = DroNode()
+        self.node = DroNode(self.robot_info_ui_callback, self.robot_position_ui_callback)
 
         Clock.schedule_interval(self.spin, 1.0 / 10.0)  # Run ROS node at 10 Hz
-
-        # Add DOF widgets to scrollview
-        for i in range(6):
-            main_layout.scrollview_content.add_widget(DOFWidget())
 
         return main_layout
     
@@ -99,6 +96,18 @@ class DROApp(App):
         self.node.destroy_node()
         rclpy.shutdown()
 
+    def robot_info_ui_callback(self, robot_info):
+        print('Robot Info: %s' % robot_info)
+
+        for i in range(robot_info.num_joints):
+            widget = DOFWidget()
+            widget.dof_name = robot_info.joint_names[i]
+            widget.dof_min = robot_info.joint_lower_limits[i]*180.0/math.pi
+            widget.dof_max = robot_info.joint_upper_limits[i]*180.0/math.pi
+            self.root.scrollview_content.add_widget(widget)
+
+    def robot_position_ui_callback(self, msg):
+        pass
 
 # Entry point for ROS2
 def main(args=None):
