@@ -22,7 +22,7 @@ class DroNode(Node):
 
         # Call service to get robot info
         self.robot_info_request.cmd_type = 'group'
-        self.robot_info_request.name = 'all'    
+        self.robot_info_request.name = 'arm'    
         self.future = self.robot_info_client.call_async(self.robot_info_request)
         self.future.add_done_callback(self.robot_info_callback)
 

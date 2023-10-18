@@ -26,6 +26,7 @@ kv_file_path = os.path.join(get_package_share_directory('simplified_dro'), 'ui/d
 class DOFWidget(BoxLayout):
     dof_name = StringProperty('Unknown DOF')
     dof_value = NumericProperty(0.0)
+    dof_percent = NumericProperty(0.0)
     dof_min = NumericProperty(0.0)
     dof_max = NumericProperty(180.0)
     dof_temp_color = ListProperty(GREY_COLOR)
@@ -97,17 +98,42 @@ class DROApp(App):
         rclpy.shutdown()
 
     def robot_info_ui_callback(self, robot_info):
-        print('Robot Info: %s' % robot_info)
+        # Create an array of DOF widgets
+        self.dof_widgets = []
 
+        # Populate the UI with the information from the robot
         for i in range(robot_info.num_joints):
             widget = DOFWidget()
             widget.dof_name = robot_info.joint_names[i]
             widget.dof_min = robot_info.joint_lower_limits[i]*180.0/math.pi
             widget.dof_max = robot_info.joint_upper_limits[i]*180.0/math.pi
             self.root.scrollview_content.add_widget(widget)
+            self.dof_widgets.append(widget)
 
     def robot_position_ui_callback(self, msg):
-        pass
+        robot_info = self.node.robot_info
+
+        print(msg)
+
+        # Update the python value string
+        python_value = '['
+
+        # Update the UI with the current joint positions
+        for i in range(robot_info.num_joints):
+            widget = self.dof_widgets[i]
+            widget.dof_value = msg.position[i]*180.0/math.pi
+            widget.dof_percent = 100.0*(msg.position[i]-robot_info.joint_lower_limits[i])/(robot_info.joint_upper_limits[i]-robot_info.joint_lower_limits[i])
+            #widget.set_temp(msg.temperature[i])
+            widget.set_force(abs(msg.effort[i])/1500.0) # This value is arbitrary and should be per servo
+
+            python_value += "{:.8f}".format(msg.position[i])
+            if (i < robot_info.num_joints-1):
+                python_value += ', '
+
+        python_value += ']'
+        self.root.dof_python_value = python_value
+        
+
 
 # Entry point for ROS2
 def main(args=None):
