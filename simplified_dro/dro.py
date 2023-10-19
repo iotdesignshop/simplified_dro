@@ -87,7 +87,7 @@ class DROApp(App):
     def on_start(self):
         
         # Start ROS node
-        self.node = DroNode(self.robot_info_ui_callback, self.robot_position_ui_callback)
+        self.node = DroNode(self.robot_info_ui_callback, self.robot_position_ui_callback, self.robot_temperature_ui_callback)
         Clock.schedule_interval(self.spin, 1.0 / 10.0)  # Run ROS node at 10 Hz
 
         
@@ -116,8 +116,6 @@ class DROApp(App):
     def robot_position_ui_callback(self, msg):
         robot_info = self.node.robot_info
 
-        print(msg)
-
         # Update the python value string
         python_value = '['
 
@@ -127,9 +125,6 @@ class DROApp(App):
             widget.dof_value = msg.position[i]*180.0/math.pi
             widget.dof_percent = 100.0*(msg.position[i]-robot_info.joint_lower_limits[i])/(robot_info.joint_upper_limits[i]-robot_info.joint_lower_limits[i])
             
-            
-            #widget.set_temp(msg.temperature[i])
-
             # Force is normalized to the current limit for each servo
             widget.set_force(abs(msg.effort[i])/self.node.current_limit[i])    
 
@@ -139,6 +134,22 @@ class DROApp(App):
 
         python_value += ']'
         self.root.dof_python_value = python_value
+
+    def robot_temperature_ui_callback(self, msg):
+        robot_info = self.node.robot_info
+
+        # Update the UI with the current joint temperatures
+        for i in range(robot_info.num_joints):
+            widget = self.dof_widgets[i]
+
+            # 30 degrees is kind of normal operating temp
+            temp_min = 30.0
+            temp_max = self.node.temperature_limit[i]*.9  # 90% of the limit
+            temp_range = temp_max - temp_min
+            temp = msg[i] - temp_min
+            if temp < 0:
+                temp = 0
+            widget.set_temp(temp/temp_range)
         
 
 

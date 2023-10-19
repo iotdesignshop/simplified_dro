@@ -8,7 +8,7 @@ CURRENT_SAFETY_MARGIN = 0.75 # Current display is reduced by this amount to prov
 
 
 class DroNode(Node):
-    def __init__(self, robot_info_ui_callback = None, robot_position_ui_callback = None):
+    def __init__(self, robot_info_ui_callback = None, robot_position_ui_callback = None, robot_temperature_ui_callback = None):
         super().__init__('dro_node')
         self.get_logger().info('DRO node started')
 
@@ -51,12 +51,20 @@ class DroNode(Node):
         self.future = self.register_values_client.call_async(current_limit_request)
         self.future.add_done_callback(self.current_limit_callback)
 
-
-
         # Stash callbacks
         self.robot_info_ui_callback = robot_info_ui_callback
         self.robot_position_ui_callback = robot_position_ui_callback
+        self.robot_temperature_ui_callback = robot_temperature_ui_callback
 
+
+    def temperature_timer_callback(self):
+        # Make a request to get current temperatures
+        temp_request = RegisterValues.Request()
+        temp_request.cmd_type = 'group'
+        temp_request.name = 'arm'
+        temp_request.reg = 'Present_Temperature'
+        self.future = self.register_values_client.call_async(temp_request)
+        self.future.add_done_callback(self.temperature_callback)
 
     def robot_info_callback(self, future):
         try:
@@ -78,6 +86,20 @@ class DroNode(Node):
         if self.robot_position_ui_callback:
             self.robot_position_ui_callback(msg)
 
+    def temperature_callback(self, future):
+        try:
+            response = future.result()
+        except Exception as e:
+            self.get_logger().info(
+                'Service call failed %r' % (e,))
+        else:
+            self.get_logger().info('Temperature: %s' % response)
+            self.robot_temperature = response.values
+
+            # Notify UI
+            if self.robot_temperature_ui_callback:
+                self.robot_temperature_ui_callback(self.robot_temperature)
+
     def temperature_limit_callback(self, future):
         try:
             response = future.result()
@@ -86,7 +108,15 @@ class DroNode(Node):
                 'Service call failed %r' % (e,))
         else:
             self.get_logger().info('Temperature Limit: %s' % response)
-            self.temperature_limit = response
+            self.temperature_limit = response.values
+
+            # Kick an immediate temperature update
+            self.temperature_timer_callback()
+
+            # Schedule a timer to read temperature every 10 seconds
+            self.timer = self.create_timer(10.0, self.temperature_timer_callback)
+
+        
     
     def current_limit_callback(self, future):
         try:
