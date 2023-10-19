@@ -82,12 +82,15 @@ class DROApp(App):
 
         main_layout = MainLayout()
 
+        return main_layout
+    
+    def on_start(self):
+        
         # Start ROS node
         self.node = DroNode(self.robot_info_ui_callback, self.robot_position_ui_callback)
-
         Clock.schedule_interval(self.spin, 1.0 / 10.0)  # Run ROS node at 10 Hz
 
-        return main_layout
+        
     
     def spin(self, dt):
         # Update ROS Node
@@ -123,8 +126,12 @@ class DROApp(App):
             widget = self.dof_widgets[i]
             widget.dof_value = msg.position[i]*180.0/math.pi
             widget.dof_percent = 100.0*(msg.position[i]-robot_info.joint_lower_limits[i])/(robot_info.joint_upper_limits[i]-robot_info.joint_lower_limits[i])
+            
+            
             #widget.set_temp(msg.temperature[i])
-            widget.set_force(abs(msg.effort[i])/1500.0) # This value is arbitrary and should be per servo
+
+            # Force is normalized to the current limit for each servo
+            widget.set_force(abs(msg.effort[i])/self.node.current_limit[i])    
 
             python_value += "{:.8f}".format(msg.position[i])
             if (i < robot_info.num_joints-1):
