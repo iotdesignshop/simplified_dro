@@ -14,48 +14,72 @@ class DroNode(Node):
 
         # Mark as not ready
         self.robot_info = None  
+        self.current_limit = None
+        self.temperature_limit = None
 
         # Check parameter for robot model - default to auto-mate arm
         self.robot_model = self.declare_parameter('robot_model', 'xm540arm').value
         
         # Create service client to get robot info
         self.robot_info_client = self.create_client(RobotInfo, self.robot_model+'/get_robot_info')
-        while not self.robot_info_client.wait_for_service(timeout_sec=1.0):
-            self.get_logger().info('Robot Info service not available, waiting again...')
         
         # Create service client for getting servo registers
         self.register_values_client = self.create_client(RegisterValues, self.robot_model+'/get_motor_registers')
-        while not self.register_values_client.wait_for_service(timeout_sec=1.0):
-            self.get_logger().info('Register Values service not available, waiting again...')
         
-        # Call service to get robot info
-        robot_info_request = RobotInfo.Request()
-        robot_info_request.cmd_type = 'group'
-        robot_info_request.name = 'arm'    
-        self.future = self.robot_info_client.call_async(robot_info_request)
-        self.future.add_done_callback(self.robot_info_callback)
-
-        # Call service to get maximum temperatures on servos
-        temp_limit_request = RegisterValues.Request()
-        temp_limit_request.cmd_type = 'group'
-        temp_limit_request.name = 'arm'
-        temp_limit_request.reg = 'Temperature_Limit'
-        self.future = self.register_values_client.call_async(temp_limit_request)
-        self.future.add_done_callback(self.temperature_limit_callback)
-
-        # Call service to get current limit on servos
-        current_limit_request = RegisterValues.Request()
-        current_limit_request.cmd_type = 'group'
-        current_limit_request.name = 'arm'
-        current_limit_request.reg = 'Current_Limit'
-        self.future = self.register_values_client.call_async(current_limit_request)
-        self.future.add_done_callback(self.current_limit_callback)
-
+        # Schedule timers to check for the services to be ready
+        self.robot_info_timer = self.create_timer(0.25, self.robot_info_timer_callback)
+        self.register_timer = self.create_timer(0.25, self.register_timer_callback)
+        
         # Stash callbacks
         self.robot_info_ui_callback = robot_info_ui_callback
         self.robot_position_ui_callback = robot_position_ui_callback
         self.robot_temperature_ui_callback = robot_temperature_ui_callback
 
+    def robot_info_timer_callback(self):
+        # Is the service ready?
+        if self.robot_info_client.service_is_ready():
+            # Call service to get robot info
+            robot_info_request = RobotInfo.Request()
+            robot_info_request.cmd_type = 'group'
+            robot_info_request.name = 'arm'    
+            self.future = self.robot_info_client.call_async(robot_info_request)
+            self.future.add_done_callback(self.robot_info_callback)
+
+            # Stop this timer
+            self.robot_info_timer.cancel()
+            self.robot_info_timer = None
+        else:
+            self.get_logger().info('Waiting for get_robot_info service to be ready')
+
+    def register_timer_callback(self):
+        # Is the service ready?
+        if self.robot_info_client.service_is_ready():
+            # Call service to get maximum temperatures on servos
+            temp_limit_request = RegisterValues.Request()
+            temp_limit_request.cmd_type = 'group'
+            temp_limit_request.name = 'arm'
+            temp_limit_request.reg = 'Temperature_Limit'
+            self.future = self.register_values_client.call_async(temp_limit_request)
+            self.future.add_done_callback(self.temperature_limit_callback)
+
+            # Call service to get current limit on servos
+            current_limit_request = RegisterValues.Request()
+            current_limit_request.cmd_type = 'group'
+            current_limit_request.name = 'arm'
+            current_limit_request.reg = 'Current_Limit'
+            self.future = self.register_values_client.call_async(current_limit_request)
+            self.future.add_done_callback(self.current_limit_callback)
+
+            # Stop this timer
+            self.register_timer.cancel()
+            self.regiser_timer = None
+        else:
+            self.get_logger().info('Waiting for get_motor_registers service to be ready')
+
+    def ready(self):
+        # Have we received all of the start up information?
+        return self.robot_info != None and self.temperature_limit != None and self.current_limit != None
+    
 
     def temperature_timer_callback(self):
         # Make a request to get current temperatures

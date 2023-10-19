@@ -1,3 +1,11 @@
+# Application configuration/setup
+from kivy import Config
+
+# Default to a narrow, but tall window for the DOFs
+Config.set('graphics', 'width', '360')
+Config.set('graphics', 'height', '800')
+
+
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout    
 from kivy.core.window import Window
@@ -12,9 +20,9 @@ import rclpy
 from simplified_dro.dro_node import DroNode
 from kivy.lang import Builder
 import math
+from kivy.uix.popup import Popup
+from kivy.uix.label import Label
 
-# Default to a narrow, but tall window for the DOFs
-Window.size = (360, 800)
 
 # Indicator color constants
 GREY_COLOR = [0.5, 0.5, 0.5, 1]
@@ -74,6 +82,8 @@ class MainLayout(BoxLayout):
     
 
 class DROApp(App):
+    
+    node = None     # To store ROS node after initialization
 
     def build(self):
         
@@ -85,19 +95,37 @@ class DROApp(App):
         return main_layout
     
     def on_start(self):
-        
+        # Display a popup to tell the user we're waiting for the robot connection
+        self.waitpopup = Popup(title='Please Wait', content=Label(text='Waiting for Robot Connection'),
+              auto_dismiss=False)
+        self.waitpopup.open()
+
         # Start ROS node
         self.node = DroNode(self.robot_info_ui_callback, self.robot_position_ui_callback, self.robot_temperature_ui_callback)
+        
+        # Start a timer to check if the robot is ready
+        Clock.schedule_interval(self.wait_robot, 1.0)  # Check for robot connection every second
+
+        # Start the regular ROS update loop
         Clock.schedule_interval(self.spin, 1.0 / 10.0)  # Run ROS node at 10 Hz
 
+    def wait_robot(self, dt):
+        if (self.node.ready()):
+            # Close the popup
+            self.waitpopup.dismiss()
+            self.waitpopup = None
+
+            # Stop the timer
+            return False
         
-    
     def spin(self, dt):
         # Update ROS Node
         rclpy.spin_once(self.node)
 
+        
     def on_stop(self):
-        self.node.destroy_node()
+        if (self.node):
+            self.node.destroy_node()
         rclpy.shutdown()
 
     def robot_info_ui_callback(self, robot_info):
