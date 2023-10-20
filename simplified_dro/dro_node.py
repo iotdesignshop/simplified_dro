@@ -4,7 +4,6 @@ from sensor_msgs.msg import JointState
 from interbotix_xs_msgs.srv import RobotInfo, RegisterValues
 
 CURRENT_UNIT_CONVERSION = 2.69  # Used to convert current units to mA
-CURRENT_SAFETY_MARGIN = 0.75 # Current display is reduced by this amount to provide a safety margin prior to fault
 
 
 class DroNode(Node):
@@ -155,7 +154,7 @@ class DroNode(Node):
             # Multiply the current limits by the conversion factor because the joint state publisher
             # returns values in mA
             for i in range(len(self.current_limit)):
-                self.current_limit[i] = int(CURRENT_UNIT_CONVERSION * self.current_limit[i] * CURRENT_SAFETY_MARGIN)
+                self.current_limit[i] = int(CURRENT_UNIT_CONVERSION * self.current_limit[i])
 
             # Start joint state messages
             self.joint_state_sub = self.create_subscription(

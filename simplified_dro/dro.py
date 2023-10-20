@@ -26,6 +26,10 @@ from kivy.uix.label import Label
 
 # Indicator color constants
 GREY_COLOR = [0.5, 0.5, 0.5, 1]
+GREEN_COLOR = [24/255.0, 180/255.0, 24/255.0, 1]
+YELLOW_COLOR = [220/255.0, 220/255.0, 30/255.0, 1]
+ORANGE_COLOR = [230/255.0, 120/255.0, 10/255.0, 1]
+RED_COLOR = [255/255.0, 0, 0, 1]
 
 # Package paths for accessing resources
 kv_file_path = os.path.join(get_package_share_directory('simplified_dro'), 'ui/dro.kv')
@@ -51,23 +55,17 @@ class DOFWidget(BoxLayout):
         self.dof_force_color = self.calculate_gauge_rgb(value)
         
     
-    # Interpolate color between min and max based on a float value
+    # Return a color based on a value from 0-1
     def calculate_gauge_rgb(self, value):
-        RED_RANGE = 0.9
-        GREEN_RANGE = 0.9
-
-        # Clamp value to 0-1
-        value = min(max(value, 0.0), 1.0)
-
-        # Interpolate color - going from green to red
-        hue = (1.0 - value) * 120 / 360  # Interpolate between red and green hue
-        saturation = 1.0  # Full saturation
-        value = 0.9      # Not eye burning bright
-    
-        r,g,b =  colorsys.hsv_to_rgb(hue, saturation, value)
+        if (value < 0.4):   # Safe zone
+            return GREEN_COLOR
+        elif (value < 0.6):  # Warning zone
+            return YELLOW_COLOR
+        elif (value < 0.8):  # Danger zone
+            return ORANGE_COLOR
+        else:              # Critical zone
+            return RED_COLOR
         
-        return [r,g,b,1.0]
-    
     
 class MainLayout(BoxLayout):
     
@@ -107,7 +105,7 @@ class DROApp(App):
         Clock.schedule_interval(self.wait_robot, 1.0)  # Check for robot connection every second
 
         # Start the regular ROS update loop
-        Clock.schedule_interval(self.spin, 1.0 / 10.0)  # Run ROS node at 10 Hz
+        Clock.schedule_interval(self.spin, 1.0 / 4.0)  # Run ROS node at 4 Hz - this prevents overdriving the UI
 
     def wait_robot(self, dt):
         if (self.node.ready()):
@@ -172,7 +170,7 @@ class DROApp(App):
 
             # 30 degrees is kind of normal operating temp
             temp_min = 30.0
-            temp_max = self.node.temperature_limit[i]*.9  # 90% of the limit
+            temp_max = self.node.temperature_limit[i]
             temp_range = temp_max - temp_min
             temp = msg[i] - temp_min
             if temp < 0:
