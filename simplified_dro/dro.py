@@ -1,7 +1,10 @@
+
 # Application configuration/setup
-from kivy import Config
+import os
+os.environ['KIVY_NO_ARGS'] = '1'  # Prevent Kivy from parsing command line arguments
 
 # Default to a narrow, but tall window for the DOFs
+from kivy import Config
 Config.set('graphics', 'width', '360')
 Config.set('graphics', 'height', '800')
 
@@ -12,7 +15,6 @@ from kivy.core.window import Window
 from kivy.properties import NumericProperty, StringProperty, ListProperty, ObjectProperty
 from random import random
 import colorsys
-import os
 from ament_index_python.packages import get_package_share_directory
 from kivy.core.clipboard import Clipboard
 from kivy.clock import Clock

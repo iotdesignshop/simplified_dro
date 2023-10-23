@@ -18,6 +18,7 @@ class DroNode(Node):
 
         # Check parameter for robot model - default to auto-mate arm
         self.robot_model = self.declare_parameter('robot_model', 'xm540arm').value
+        self.get_logger().info('Robot model: %s' % self.robot_model)
         
         # Create service client to get robot info
         self.robot_info_client = self.create_client(RobotInfo, self.robot_model+'/get_robot_info')
