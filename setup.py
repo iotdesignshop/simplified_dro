@@ -24,6 +24,7 @@ setup(
     entry_points={
         'console_scripts': [
             'dro = simplified_dro.dro:main',
+            'control = simplified_dro.control:main',
         ],
     },
 )

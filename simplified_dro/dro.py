@@ -69,8 +69,7 @@ class DOFWidget(BoxLayout):
             return RED_COLOR
         
     
-class MainLayout(BoxLayout):
-    
+class DROLayout(BoxLayout):
     
     scrollview_content = ObjectProperty()
     dof_python_value = StringProperty('[0.0, 0.0, 0.0, 0.0, 0.0, 0.0]')
@@ -90,7 +89,7 @@ class DROApp(App):
         # Load the kv file
         Builder.load_file(kv_file_path)
 
-        main_layout = MainLayout()
+        main_layout = DROLayout()
 
         return main_layout
     
@@ -153,8 +152,9 @@ class DROApp(App):
             widget.dof_value = msg.position[i]*180.0/math.pi
             widget.dof_percent = 100.0*(msg.position[i]-robot_info.joint_lower_limits[i])/(robot_info.joint_upper_limits[i]-robot_info.joint_lower_limits[i])
             
-            # Force is normalized to the current limit for each servo
-            widget.set_force(abs(msg.effort[i])/self.node.current_limit[i])    
+            if (len(msg.effort) > 0): # Simulator doesn't return effort
+                # Force is normalized to the current limit for each servo
+                widget.set_force(abs(msg.effort[i])/self.node.current_limit[i])    
 
             python_value += "{:.8f}".format(msg.position[i])
             if (i < robot_info.num_joints-1):
@@ -167,18 +167,19 @@ class DROApp(App):
         robot_info = self.node.robot_info
 
         # Update the UI with the current joint temperatures
-        for i in range(robot_info.num_joints):
-            widget = self.dof_widgets[i]
+        if (len(self.node.temperature_limit) > 0): # Simulator doesn't return temperature limits
+            for i in range(robot_info.num_joints):
+                widget = self.dof_widgets[i]
 
-            # 30 degrees is kind of normal operating temp
-            temp_min = 30.0
-            temp_max = self.node.temperature_limit[i]
-            temp_range = temp_max - temp_min
-            temp = msg[i] - temp_min
-            if temp < 0:
-                temp = 0
-            widget.set_temp(temp/temp_range)
-        
+                # 30 degrees is kind of normal operating temp
+                temp_min = 30.0
+                temp_max = self.node.temperature_limit[i]
+                temp_range = temp_max - temp_min
+                temp = msg[i] - temp_min
+                if temp < 0:
+                    temp = 0
+                widget.set_temp(temp/temp_range)
+            
 
 
 # Entry point for ROS2

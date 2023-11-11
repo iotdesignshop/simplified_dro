@@ -72,7 +72,7 @@ class DroNode(Node):
 
             # Stop this timer
             self.register_timer.cancel()
-            self.regiser_timer = None
+            self.register_timer = None
         else:
             self.get_logger().info('Waiting for get_motor_registers service to be ready')
 
