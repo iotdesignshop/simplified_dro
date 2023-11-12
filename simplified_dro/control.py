@@ -34,7 +34,7 @@ kv_file_path = os.path.join(get_package_share_directory('simplified_dro'), 'ui/d
 
 class CountdownButton(Button):
     clock_rate = 0.1
-    countdown_time = 2.0
+    countdown_time = 1.0
     cd_color = None
     cd_arc = None
     countdown_event = None
@@ -76,11 +76,17 @@ class CountdownButton(Button):
             self.text = 'ON'
             self.cancel_countdown()
 
+        else:
+            if (self.text == 'ON'):
+                # Let main layout know that torque is on
+                self.parent.parent.torque_on()
+            
+
     # Callback for countdown
     def countdown_callback(self, dt):
         self.countdown -= self.clock_rate
         countdown_angle = self.countdown / self.countdown_time * 360.0
-        self.text = str(int(self.countdown+1))
+        self.text = 'HOLD'
 
         # Update the countdown arc
         if (self.cd_arc is not None):
@@ -89,10 +95,26 @@ class CountdownButton(Button):
         if self.countdown <= 0:
             self.text = 'OFF'
             self.cancel_countdown()
+            self.parent.parent.torque_off()
     pass
 
 class ControlLayout(BoxLayout):
-    pass
+    def set_node(self, node):
+        self.node = node
+    
+    def home_pressed(self):
+        self.node.home()
+
+    def sleep_pressed(self):
+        self.node.sleep()
+
+    def torque_off(self):
+        self.node.torque_off()
+
+    def torque_on(self):
+        self.node.torque_on()
+        
+
 
 class ControlApp(App):
     
@@ -102,9 +124,9 @@ class ControlApp(App):
         
         # Load the kv file
         Builder.load_file(kv_file_path)
-        main_layout = ControlLayout()
+        self.main_layout = ControlLayout()
 
-        return main_layout
+        return self.main_layout
     
     def on_start(self):
         # Display a popup to tell the user we're waiting for the robot connection
@@ -114,6 +136,7 @@ class ControlApp(App):
 
         # Start ROS node
         self.node = ControlNode()
+        self.main_layout.set_node(self.node)
         
         # Start a timer to check if the robot is ready
         Clock.schedule_interval(self.wait_robot, 1.0)  # Check for robot connection every second
@@ -122,6 +145,7 @@ class ControlApp(App):
         Clock.schedule_interval(self.spin, 1.0 / 4.0)  # Run ROS node at 4 Hz - this prevents overdriving the UI
 
     def wait_robot(self, dt):
+        # Once control node is ready, we can close the "wait" popup
         if (self.node.ready()):
             # Close the popup
             self.waitpopup.dismiss()
@@ -141,7 +165,8 @@ class ControlApp(App):
             self.node.destroy_node()
         rclpy.shutdown()
 
-
+        
+    
 # Entry point for ROS2
 def main(args=None):
     rclpy.init(args=args)

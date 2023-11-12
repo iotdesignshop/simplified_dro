@@ -310,11 +310,12 @@
                 size: self.size
 
         Button:
-            text: 'Wake'
+            text: 'Home'
             font_size: '20sp'
             color: WHITE
             background_normal: ''
             background_color: GREEN
+            on_press: root.home_pressed()
 
 
         Button:
@@ -323,3 +324,4 @@
             color: WHITE
             background_normal: ''
             background_color: RED
+            on_press: root.sleep_pressed()

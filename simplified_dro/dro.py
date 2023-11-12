@@ -119,7 +119,7 @@ class DROApp(App):
         
     def spin(self, dt):
         # Update ROS Node
-        rclpy.spin_once(self.node)
+        rclpy.spin_once(self.node,timeout_sec=0)
 
         
     def on_stop(self):

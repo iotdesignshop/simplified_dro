@@ -117,7 +117,7 @@ class DroNode(Node):
             self.get_logger().info(
                 'Service call failed %r' % (e,))
         else:
-            self.get_logger().info('Temperature: %s' % response)
+            self.get_logger().debug('Temperature: %s' % response)
             self.robot_temperature = response.values
 
             # Notify UI
