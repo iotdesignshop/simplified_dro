@@ -72,7 +72,7 @@ class DroNode(Node):
 
             # Stop this timer
             self.register_timer.cancel()
-            self.regiser_timer = None
+            self.register_timer = None
         else:
             self.get_logger().info('Waiting for get_motor_registers service to be ready')
 
@@ -117,7 +117,7 @@ class DroNode(Node):
             self.get_logger().info(
                 'Service call failed %r' % (e,))
         else:
-            self.get_logger().info('Temperature: %s' % response)
+            self.get_logger().debug('Temperature: %s' % response)
             self.robot_temperature = response.values
 
             # Notify UI

@@ -4,13 +4,19 @@
 # Constants and colors
 #:import hex kivy.utils.get_color_from_hex
 
+#:set WHITE hex('#ffffff')
+#:set GRAY hex('#e9edf3')
+#:set GREEN hex('#67c366')
+#:set RED hex('#b84540')
+#:set BLACK hex('#000000')
 #:set BACKGROUND_COLOR hex('#e9edf3')
 #:set BUTTON_COLOR hex('#2156e1')
 #:set BUTTON_BACKGROUND hex('#ffffff')
 #:set LABEL_COLOR hex('#000000')
 
-# Standard button style
-<Button>:
+
+# Custom button for DRO
+<BoxOutlineButton@Button>:
     font_size: '16dp'
     color: BUTTON_COLOR
     background_normal: ''
@@ -173,8 +179,8 @@
     
 
     
-# Root layout
-<MainLayout>:
+# Root layout for DRO view
+<DROLayout>:
     scrollview_content: scrollview_content_id
 
     orientation: 'vertical'    # or 'horizontal'
@@ -214,7 +220,108 @@
             
         
     
-    Button:
+    BoxOutlineButton:
         text: 'Copy to Clipboard'
         size_hint_x: 0.5
         on_press: root.copy_to_clipboard()
+
+
+# Countdown button is a special button for the torque control
+<CountdownButton@Button>:
+    background_color: 0, 0, 0, 0
+    color: WHITE
+    font_size: '32sp'
+    size_hint_y: .75
+    # Make button square
+    size_hint_x: None
+    width: self.height
+    # Center in view
+    pos_hint: {'center_x': .5, 'center_y': .5}
+
+    canvas.before:
+        Color:
+            rgba: BLACK
+        Ellipse:
+            pos: self.pos
+            size: self.size
+        Color:
+            rgba: GRAY if self.state == 'down' else WHITE
+        Ellipse:
+            pos: self.x + dp(12), self.y + dp(12)
+            size: self.width - dp(24), self.height - dp(24)
+        Color:
+            rgba: GREEN if self.text == "ON" else RED
+        Ellipse:
+            pos: self.x + dp(24), self.y + dp(24)
+            size: self.width - dp(48), self.height - dp(48)
+
+
+
+# Root layout for Control View
+<ControlLayout>:
+
+    orientation: 'vertical'    # or 'horizontal'
+    padding: '4dp','8dp','4dp','8dp'
+    spacing: '4dp'
+
+    canvas.before:
+        Color:
+            rgba: WHITE
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+    BoxLayout:
+        orientation: 'vertical'
+        size_hint_y: .8
+        padding: '4dp','8dp','4dp','8dp'
+        canvas.before:
+            Color:
+                rgba: BACKGROUND_COLOR
+            Rectangle:
+                pos: self.pos
+                size: self.size
+
+        
+        Label:
+            text: 'Motor Torque'
+            color: LABEL_COLOR
+            font_size: '14sp'
+            halign: 'left'
+            size_hint_y: None
+            text_size: self.width, None
+            height: self.texture_size[1]
+    
+
+        CountdownButton: 
+            text: 'ON'
+        
+    BoxLayout:
+        orientation: 'horizontal'
+        size_hint_y: .2
+        padding: '8dp'
+        spacing: '8dp'
+        
+        canvas.before:
+            Color:
+                rgba: BACKGROUND_COLOR
+            Rectangle:
+                pos: self.pos
+                size: self.size
+
+        Button:
+            text: 'Home'
+            font_size: '20sp'
+            color: WHITE
+            background_normal: ''
+            background_color: GREEN
+            on_press: root.home_pressed()
+
+
+        Button:
+            text: 'Sleep'
+            font_size: '20sp'
+            color: WHITE
+            background_normal: ''
+            background_color: RED
+            on_press: root.sleep_pressed()
