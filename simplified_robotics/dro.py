@@ -19,7 +19,7 @@ from ament_index_python.packages import get_package_share_directory
 from kivy.core.clipboard import Clipboard
 from kivy.clock import Clock
 import rclpy
-from simplified_dro.dro_node import DroNode
+from simplified_robotics.dro_node import DroNode
 from kivy.lang import Builder
 import math
 from kivy.uix.popup import Popup
@@ -34,7 +34,7 @@ ORANGE_COLOR = [230/255.0, 120/255.0, 10/255.0, 1]
 RED_COLOR = [255/255.0, 0, 0, 1]
 
 # Package paths for accessing resources
-kv_file_path = os.path.join(get_package_share_directory('simplified_dro'), 'ui/dro.kv')
+kv_file_path = os.path.join(get_package_share_directory('simplified_robotics'), 'ui/dro.kv')
 
 
 class DOFWidget(BoxLayout):
@@ -45,7 +45,7 @@ class DOFWidget(BoxLayout):
     dof_max = NumericProperty(180.0)
     dof_temp_color = ListProperty(GREY_COLOR)
     dof_force_color = ListProperty(GREY_COLOR)
-    image_path = StringProperty(os.path.join(get_package_share_directory('simplified_dro'), 'ui/images'))
+    image_path = StringProperty(os.path.join(get_package_share_directory('simplified_robotics'), 'ui/images'))
 
 
 

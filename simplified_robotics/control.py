@@ -12,15 +12,12 @@ Config.set('graphics', 'height', '240')
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout    
 from kivy.core.window import Window
-from kivy.properties import NumericProperty, StringProperty, ListProperty, ObjectProperty
-from random import random
 from ament_index_python.packages import get_package_share_directory
 from kivy.clock import Clock
 import rclpy
-from simplified_dro.control_node import ControlNode
-from simplified_dro.dro_node import DroNode
+from simplified_robotics.control_node import ControlNode
+from simplified_robotics.dro_node import DroNode
 from kivy.lang import Builder
-import math
 from kivy.uix.popup import Popup
 from kivy.uix.label import Label
 from kivy.uix.button import Button
@@ -30,7 +27,7 @@ from kivy.metrics import dp
 
 
 # Package paths for accessing resources
-kv_file_path = os.path.join(get_package_share_directory('simplified_dro'), 'ui/dro.kv')
+kv_file_path = os.path.join(get_package_share_directory('simplified_robotics'), 'ui/dro.kv')
 
 class CountdownButton(Button):
     clock_rate = 0.1

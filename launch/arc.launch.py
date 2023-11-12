@@ -107,7 +107,7 @@ def launch_setup(context, *args, **kwargs):
     )
 
     dro_node = Node(
-        package='simplified_dro',
+        package='simplified_robotics',
         executable='dro',
         parameters=[{
             'robot_model': robot_model_launch_arg,
@@ -115,7 +115,7 @@ def launch_setup(context, *args, **kwargs):
         condition=IfCondition(use_dro_arg)
     )
     control_node = Node(
-        package='simplified_dro',
+        package='simplified_robotics',
         executable='control',
         parameters=[{
             'robot_model': robot_model_launch_arg,

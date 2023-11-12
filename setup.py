@@ -1,12 +1,11 @@
 from setuptools import find_packages, setup
 from glob import glob
-import os
 
-package_name = 'simplified_dro'
+package_name = 'simplified_robotics'
 
 setup(
     name=package_name,
-    version='0.0.1',
+    version='0.0.2',
     packages=find_packages(exclude=['test']),
     data_files=[
         ('share/ament_index/resource_index/packages',
@@ -20,13 +19,13 @@ setup(
     zip_safe=True,
     maintainer='Trent Shumay',
     maintainer_email='trent@iotdesignshop.com',
-    description='DRO (Digital Read Out) for Simplified Robotics and Interbotix Robot Arms',
+    description='UI Control Package for Simplified Robotics and Interbotix Robot Arms',
     license='MIT',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'dro = simplified_dro.dro:main',
-            'control = simplified_dro.control:main',
+            'dro = simplified_robotics.dro:main',
+            'control = simplified_robotics.control:main',
         ],
     },
 )
