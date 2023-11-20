@@ -139,7 +139,7 @@ class ControlApp(App):
         Clock.schedule_interval(self.wait_robot, 1.0)  # Check for robot connection every second
 
         # Start the regular ROS update loop
-        Clock.schedule_interval(self.spin, 1.0 / 4.0)  # Run ROS node at 4 Hz - this prevents overdriving the UI
+        Clock.schedule_interval(self.spin, 1.0 / 10.0)  # Run ROS node at 10 Hz - this prevents overdriving the UI
 
     def wait_robot(self, dt):
         # Once control node is ready, we can close the "wait" popup
