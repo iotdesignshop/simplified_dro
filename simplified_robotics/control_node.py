@@ -37,17 +37,33 @@ class ControlNode(Node):
         self.joy_pub.publish(joy_msg)
 
     def torque_off(self):
+        # TS - There is a bug in the Interbotix API where the torque enable service
+        # hangs. Keeping those code around for now in case we want to use it later.
         # Turn off torque control
-        joy_msg = ArmJoy()
-        joy_msg.torque_cmd = ArmJoy.TORQUE_OFF
-        self.joy_pub.publish(joy_msg)
+        #joy_msg = ArmJoy()
+        #joy_msg.torque_cmd = ArmJoy.TORQUE_OFF
+        #self.joy_pub.publish(joy_msg)
+
+        future_torque_enable = self.torque_client.call_async(
+            TorqueEnable.Request(cmd_type='group', name='arm', enable=False)
+        )
+        rclpy.spin_until_future_complete(self, future_torque_enable)
+        self.get_logger().info("Torque: off")
+        
 
     def torque_on(self):
+        # TS - There is a bug in the Interbotix API where the torque enable service
+        # hangs. Keeping those code around for now in case we want to use it later.
         # Turn on torque control
-        joy_msg = ArmJoy()
-        joy_msg.torque_cmd = ArmJoy.TORQUE_ON
-        self.joy_pub.publish(joy_msg)
+        #joy_msg = ArmJoy()
+        #joy_msg.torque_cmd = ArmJoy.TORQUE_ON
+        #self.joy_pub.publish(joy_msg)
 
+        future_torque_enable = self.torque_client.call_async(
+            TorqueEnable.Request(cmd_type='group', name='arm', enable=True)
+        )
+        rclpy.spin_until_future_complete(self, future_torque_enable)
+        self.get_logger().info("Torque: on")
         
 
 # This class is normally run from the UI, but can be run from the command line
